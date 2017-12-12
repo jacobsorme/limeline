@@ -1,0 +1,145 @@
+<html>
+<body>
+asdsad
+
+<script>
+
+
+</script>
+
+
+
+<textarea id="textarea" rows="20" cols="30">
+{
+  "y1":1996,
+  "y2":-1,
+  "title":"life",
+  "text":"ass"
+}
+</textarea>
+<input type="button" onclick="submit()">
+<input type="number" autocomplete="false" value="1996" id="y1">
+<input type="number" autocomplete="false" value="1996" id="y2">
+<input type="number" autocomplete="false" value="-1" id="y3">
+
+
+
+<canvas id="canvas" width="1080" height="500" style="border:1px solid #000000;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+
+
+
+<script>
+function Timeline(canvas){
+  this.jobs = [];
+  this.canvas = canvas;
+  this.ctx = canvas.getContext("2d");
+  this.id = 1;
+  this.date = new Date();
+  this.margin = 20;
+}
+
+Timeline.prototype = {
+  getId: function(){
+    return this.id;
+  },
+  getY1(){
+    return document.getElementById("y1").value;
+  },
+  getY2(){
+    return document.getElementById("y2").value;
+  },
+  getY3(){
+    return document.getElementById("y3").value;
+  },
+  render: function(){
+    this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    this.ctx.fillStyle="#000000";
+    this.ctx.lineWidth =2;
+
+    // render timeline
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.margin,this.canvas.height/2);
+    this.ctx.lineTo(this.canvas.width-this.margin,this.canvas.height/2);
+    this.ctx.stroke();
+    //this.ctx.clearPath();
+
+    //render years and marks
+    var y1 = this.getY1();
+    var y2 = this.getY2();
+    var y3 = this.getY3();
+    if(y3<0) y3 = this.date.getFullYear();
+    this.ctx.beginPath();
+    this.ctx.font="14px Georgia";
+    var length = 5;
+    var x;
+
+    for(var i = y2;i <=y3;i++){
+      length = 5;
+      if(i%5==0) length = 10;
+      x = this.margin+((this.canvas.width-2*this.margin)/(y3-y2)*(i-y2));
+      this.ctx.moveTo(x,this.canvas.height/2-length);
+      this.ctx.lineTo(x,this.canvas.height/2+length);
+      this.ctx.stroke();
+      this.ctx.fillText(i,x,this.canvas.height/2+20);
+
+
+    }
+    //this.ctx.clearPath();
+    this.ctx.beginPath();
+    for(var j in this.jobs){
+      if(this.jobs[j].y2<0) this.jobs[j].y2 = this.date.getFullYear();
+      this.ctx.moveTo(this.margin+((this.canvas.width-2*this.margin)/(y3-y2)*(this.jobs[j].y1-y2)),this.canvas.height/2+50);
+      this.ctx.lineTo(this.margin+((this.canvas.width-2*this.margin)/(y3-y2)*(this.jobs[j].y2-y2)),this.canvas.height/2+50);
+      this.ctx.stroke();
+    }
+
+  }
+}
+
+function Job(id,input){
+  this.id = id;
+  this.y1 = input.y1;
+  this.y2 = input.y2;
+  this.title = input.title;
+  this.text = input.text;
+  this.color = "#ff2222";
+}
+
+
+
+  var canvas = document.getElementById("canvas");
+
+  var timeline = new Timeline(canvas);
+
+  setInterval(bitch,1000);
+
+  function bitch(){
+    timeline.render();
+  }
+
+
+  function submit(){
+    var jobObject = JSON.parse(document.getElementById("textarea").innerHTML);
+    console.log(jobObject);
+    var job = new Job(timeline.getId(),jobObject);
+    timeline.jobs.push(job);
+
+    console.log(timeline.jobs);
+
+
+  }
+
+  //alert();
+
+
+
+
+
+</script>
+
+
+</body>
+</html>
