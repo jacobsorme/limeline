@@ -1,99 +1,227 @@
+<!doctype html>
 <html>
 <body>
-asdsad
+<meta charset="utf-8">
+LimeLine - A timeline for limelight<br>
 
-<script>
-
-
-</script>
-
-
-
-<textarea id="textarea" rows="20" cols="30">
+<table>
+  <th>Text area</th>
+  <th>Occupations</th>
+  <tr>
+    <td>
+      <textarea id="textarea" rows="8" cols="40">
 {
-  "y1":1996,
-  "y2":-1,
-  "title":"life",
-  "text":"ass"
+  "y1":2012.5,
+  "y2":2015.5,
+  "title":"Blackeberg",
+  "text":"Natur",
+  "color":"#f00"
 }
-</textarea>
-<input type="button" onclick="submit()">
+    </textarea><br>
+      <input type="button" onclick="submit()" value="Submit">
+      <input type="button" onclick="clear()" value="Clear">
+    </td>
+    <td>
+      <table id="jobs">
+      </table>
+    </td>
+</table>
+
 <input type="number" autocomplete="false" value="1996" id="y1">
 <input type="number" autocomplete="false" value="1996" id="y2">
 <input type="number" autocomplete="false" value="-1" id="y3">
+<input type="checkbox" autocomplete="false" value="Write all years" id="allyears">
+<input type="checkbox" autocomplete="false" value="Write all years" id="dotdotdot">
+<br>
 
 
-
-<canvas id="canvas" width="1080" height="500" style="border:1px solid #000000;">
+<canvas id="canvas" width="1000" height="300" style="border:1px solid #000000;">
 Your browser does not support the HTML5 canvas tag.
 </canvas>
-
-
 
 
 <script>
 function Timeline(canvas){
   this.jobs = [];
   this.canvas = canvas;
+  this.height = canvas.height;
+  this.width = canvas.width;
   this.ctx = canvas.getContext("2d");
   this.id = 1;
+  this.positions = [[]];
   this.date = new Date();
   this.margin = 20;
+  this.lmargin = 20;
+  this.rmargin = 20;
 }
 
 Timeline.prototype = {
   getId: function(){
-    return this.id;
+    return this.id++;
   },
-  getY1(){
+  getY1: function(){
     return document.getElementById("y1").value;
   },
-  getY2(){
+  getY2: function(){
     return document.getElementById("y2").value;
   },
-  getY3(){
+  getY3: function(){
     return document.getElementById("y3").value;
   },
+  getPos: function(year,y2,y3){
+    return this.lmargin+((this.width-this.lmargin-this.rmargin)/(y3-y2)*(year-y2));
+  },
+  removeJob: function(id){
+    console.log("yuuh"+ this.jobs.length);
+    for(var i in this.jobs){
+      console.log(i+" "+this.jobs.length);
+      if(this.jobs[i].id ==id) this.jobs.splice(i,1);
+      console.log(i+" "+this.jobs.length);
+    }
+  },
+  editJob: function(id){
+    var txt = "not found";
+    for(var i in this.jobs){
+      if(this.jobs[i].id ==id) {
+        delete this.jobs[i].id;
+        txt = JSON.stringify(this.jobs[i],null,2);
+        this.jobs[i].id = id;
+      }
+    }
+    document.getElementById("textarea").value = txt;
+    this.removeJob(id);
+  },
+
   render: function(){
-    this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    // init
+    var y1 = this.getY1();
+    var y2 = this.getY2();
+    var y3 = this.getY3();
+    this.ctx.lineCap="round";
+    if(y3<0) y3 = this.date.getFullYear()+1;
+    this.positions.length = 5;
+    for(var i in this.positions){
+      this.positions[i].length = y3-y2;
+      this.positions[i].fill(false);
+    }
+
+    if(document.getElementById("dotdotdot").checked){
+      this.lmargin = 100;
+    } else { this.lmargin = 20; }
+
+
+
+    this.ctx.clearRect(0,0,this.width,this.height);
     this.ctx.fillStyle="#000000";
     this.ctx.lineWidth =2;
 
     // render timeline
+    this.ctx.strokeStyle ="#000000";
     this.ctx.beginPath();
-    this.ctx.moveTo(this.margin,this.canvas.height/2);
-    this.ctx.lineTo(this.canvas.width-this.margin,this.canvas.height/2);
+    this.ctx.moveTo(this.lmargin,this.height/2);
+    this.ctx.lineTo(this.width-this.margin,this.height/2);
     this.ctx.stroke();
     //this.ctx.clearPath();
 
     //render years and marks
-    var y1 = this.getY1();
-    var y2 = this.getY2();
-    var y3 = this.getY3();
-    if(y3<0) y3 = this.date.getFullYear();
-    this.ctx.beginPath();
-    this.ctx.font="14px Georgia";
     var length = 5;
-    var x;
-
-    for(var i = y2;i <=y3;i++){
-      length = 5;
-      if(i%5==0) length = 10;
-      x = this.margin+((this.canvas.width-2*this.margin)/(y3-y2)*(i-y2));
-      this.ctx.moveTo(x,this.canvas.height/2-length);
-      this.ctx.lineTo(x,this.canvas.height/2+length);
+    if(document.getElementById("dotdotdot").checked) {
+      this.ctx.textAlign ="center";
+      this.ctx.font="12px Georgia";
+      this.ctx.fillText(y1,20,this.height/2+20);
+      this.ctx.moveTo(20,this.height/2-length);
+      this.ctx.lineTo(20,this.height/2+length);
       this.ctx.stroke();
-      this.ctx.fillText(i,x,this.canvas.height/2+20);
-
-
     }
-    //this.ctx.clearPath();
+
+
     this.ctx.beginPath();
-    for(var j in this.jobs){
-      if(this.jobs[j].y2<0) this.jobs[j].y2 = this.date.getFullYear();
-      this.ctx.moveTo(this.margin+((this.canvas.width-2*this.margin)/(y3-y2)*(this.jobs[j].y1-y2)),this.canvas.height/2+50);
-      this.ctx.lineTo(this.margin+((this.canvas.width-2*this.margin)/(y3-y2)*(this.jobs[j].y2-y2)),this.canvas.height/2+50);
+    this.ctx.lineWidth=2;
+
+    this.ctx.font="12px Georgia";
+    this.ctx.textAlign ="center";
+    this.ctx.fillText(y2,this.lmargin,this.height/2+25);
+    this.ctx.fillText(y3,this.width-this.rmargin,this.height/2+25);
+
+    var x;
+    for(var i = y2;i <=y3;i++){
+      x = this.getPos(i,y2,y3);
+      length = 5;
+      if(i%5==0) {
+        if(i!=y2) this.ctx.fillText(i,x,this.height/2+25);
+        length = 12;
+      }
+      if(document.getElementById("allyears").checked && i%5!=0 && i!=y2 &&i!=y3) this.ctx.fillText(i,x,this.height/2+20);
+      this.ctx.moveTo(x,this.height/2-length);
+      this.ctx.lineTo(x,this.height/2+length);
       this.ctx.stroke();
+    }
+
+    // render occupations & Interface
+    this.ctx.lineWidth=2;
+    document.getElementById("jobs").innerHTML ="";
+    for(var i in this.jobs){
+
+
+
+      //Interface
+      var row = document.createElement("tr");
+      var data = document.createElement("td");
+      var job = document.createElement("div");
+      var remove = document.createElement("input");
+      var edit = document.createElement("input");
+      remove.type = "button";
+      edit.type = "button";
+      remove.value = "Remove";
+      edit.value = "Edit";
+      remove.onclick=this.removeJob.bind(this,this.jobs[i].id);
+      edit.onclick=this.editJob.bind(this,this.jobs[i].id);
+
+      job.innerHTML+=this.jobs[i].title;
+      job.appendChild(remove);
+      job.appendChild(edit);
+      data.appendChild(job);
+      row.appendChild(data);
+
+      document.getElementById("jobs").appendChild(row);
+
+
+
+
+
+      // occupations
+      var job_y1=this.jobs[i].y1;
+      var job_y2=this.jobs[i].y2;
+
+
+      this.ctx.beginPath();
+      this.ctx.strokeStyle=this.jobs[i].color;
+
+      this.ctx.moveTo(this.getPos(this.jobs[i].y1,y2,y3),this.height/2+40-10);
+      this.ctx.quadraticCurveTo(this.getPos(this.jobs[i].y1,y2,y3),this.height/2+40,this.getPos(this.jobs[i].y1,y2,y3)+10,this.height/2+40);
+      if(job_y2<0){
+        job_y2 = this.date.getFullYear()+(this.date.getMonth()/11);
+        this.ctx.lineTo(this.getPos(job_y2,y2,y3),this.height/2+40);
+      } else {
+        this.ctx.lineTo(this.getPos(job_y2,y2,y3)-10,this.height/2+40);
+        this.ctx.quadraticCurveTo(this.getPos(job_y2,y2,y3),this.height/2+40,this.getPos(job_y2,y2,y3),this.height/2+40-10);
+      }
+
+      this.ctx.stroke();
+
+      //title
+      this.ctx.font="18px Georgia";
+      this.ctx.textAlign ="left";
+      this.ctx.fillText(this.jobs[i].title,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+75);
+      //years
+      this.ctx.font="11px Georgia";
+      var str1 = this.jobs[i].y1+"";
+      var str2 = this.jobs[i].y2+"";
+      if(str2==-1) str2="";
+      this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(this.jobs[i].y1,y2,y3),this.height/2+90);
+      //text
+      this.ctx.font="12px Georgia";
+      this.ctx.fillText(this.jobs[i].text,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+110);
     }
 
   }
@@ -105,7 +233,7 @@ function Job(id,input){
   this.y2 = input.y2;
   this.title = input.title;
   this.text = input.text;
-  this.color = "#ff2222";
+  this.color = input.color;
 }
 
 
@@ -120,26 +248,16 @@ function Job(id,input){
     timeline.render();
   }
 
-
   function submit(){
-    var jobObject = JSON.parse(document.getElementById("textarea").innerHTML);
-    console.log(jobObject);
-    var job = new Job(timeline.getId(),jobObject);
+    var job = new Job(timeline.getId(),JSON.parse(document.getElementById("textarea").value));
     timeline.jobs.push(job);
-
-    console.log(timeline.jobs);
-
-
   }
 
-  //alert();
-
-
-
-
+  function clear(){
+    document.getElementById("textarea").value = "ass";
+  }
 
 </script>
-
 
 </body>
 </html>
