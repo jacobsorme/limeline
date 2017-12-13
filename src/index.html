@@ -9,17 +9,22 @@ LimeLine - A timeline for limelight<br>
   <th>Occupations</th>
   <tr>
     <td>
-      <textarea id="textarea" rows="8" cols="40">
+      <textarea id="textarea" rows="10" cols="40">
 {
   "y1":2012.5,
   "y2":2015.5,
   "title":"Blackeberg",
-  "text":"Natur",
-  "color":"#f00"
+  "text":"Naturvetenskap",
+  "color":"#a00",
+  "layer":0,
+  "textPosition":-20,
+  "showYears":true
 }
     </textarea><br>
       <input type="button" onclick="submit()" value="Submit">
       <input type="button" onclick="clear()" value="Clear">
+      <input type="button" id="copy" value="Copy project to clipboard, for saving!"><br>
+      <input type="button" onclick="load()" value="Load"><input id="load" type="text">
     </td>
     <td>
       <table id="jobs">
@@ -56,6 +61,13 @@ function Timeline(canvas){
 }
 
 Timeline.prototype = {
+  init: function(){
+
+
+  },
+  getJobs: function(){
+    return JSON.stringify(this.jobs);
+  },
   getId: function(){
     return this.id++;
   },
@@ -72,20 +84,17 @@ Timeline.prototype = {
     return this.lmargin+((this.width-this.lmargin-this.rmargin)/(y3-y2)*(year-y2));
   },
   removeJob: function(id){
-    console.log("yuuh"+ this.jobs.length);
     for(var i in this.jobs){
-      console.log(i+" "+this.jobs.length);
       if(this.jobs[i].id ==id) this.jobs.splice(i,1);
-      console.log(i+" "+this.jobs.length);
     }
   },
+
+
   editJob: function(id){
     var txt = "not found";
     for(var i in this.jobs){
       if(this.jobs[i].id ==id) {
-        delete this.jobs[i].id;
-        txt = JSON.stringify(this.jobs[i],null,2);
-        this.jobs[i].id = id;
+        txt = JSON.stringify(new LightJob(this.jobs[i]),null,2);
       }
     }
     document.getElementById("textarea").value = txt;
@@ -98,16 +107,17 @@ Timeline.prototype = {
     var y2 = this.getY2();
     var y3 = this.getY3();
     this.ctx.lineCap="round";
+    this.ctx.textBaseline="middle";
     if(y3<0) y3 = this.date.getFullYear()+1;
     this.positions.length = 5;
     for(var i in this.positions){
-      this.positions[i].length = y3-y2;
+      this.positions[i].length = Math.max(y3-y2,0);
       this.positions[i].fill(false);
     }
 
     if(document.getElementById("dotdotdot").checked){
-      this.lmargin = 100;
-    } else { this.lmargin = 20; }
+      this.lmargin = 70;
+    } else { this.lmargin = this.margin; }
 
 
 
@@ -124,13 +134,26 @@ Timeline.prototype = {
     //this.ctx.clearPath();
 
     //render years and marks
+    this.ctx.textBaseline="alphabetic";
     var length = 5;
+
+    //beginning, y1
     if(document.getElementById("dotdotdot").checked) {
+      this.ctx.beginPath();
       this.ctx.textAlign ="center";
       this.ctx.font="12px Georgia";
-      this.ctx.fillText(y1,20,this.height/2+20);
-      this.ctx.moveTo(20,this.height/2-length);
-      this.ctx.lineTo(20,this.height/2+length);
+      this.ctx.fillText(y1,this.margin,this.height/2+15);
+      this.ctx.moveTo(this.margin,this.height/2-length);
+      this.ctx.lineTo(this.margin,this.height/2+length);
+      this.ctx.stroke();
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.margin,this.height/2);
+      this.ctx.lineTo(this.margin+10,this.height/2);
+      this.ctx.moveTo(this.margin+20,this.height/2);
+      this.ctx.lineTo(this.margin+30,this.height/2);
+      this.ctx.moveTo(this.margin+40,this.height/2);
+      this.ctx.lineTo(this.margin+50,this.height/2);
       this.ctx.stroke();
     }
 
@@ -161,13 +184,15 @@ Timeline.prototype = {
     this.ctx.lineWidth=2;
     document.getElementById("jobs").innerHTML ="";
     for(var i in this.jobs){
+      var job = this.jobs[i];
+      //init
 
 
 
       //Interface
       var row = document.createElement("tr");
       var data = document.createElement("td");
-      var job = document.createElement("div");
+      var div = document.createElement("div");
       var remove = document.createElement("input");
       var edit = document.createElement("input");
       remove.type = "button";
@@ -177,54 +202,66 @@ Timeline.prototype = {
       remove.onclick=this.removeJob.bind(this,this.jobs[i].id);
       edit.onclick=this.editJob.bind(this,this.jobs[i].id);
 
-      job.innerHTML+=this.jobs[i].title;
-      job.appendChild(remove);
-      job.appendChild(edit);
-      data.appendChild(job);
+      div.innerHTML+=this.jobs[i].title;
+      div.appendChild(remove);
+      div.appendChild(edit);
+      data.appendChild(div);
       row.appendChild(data);
 
       document.getElementById("jobs").appendChild(row);
 
 
 
-
-
       // occupations
-      var job_y1=this.jobs[i].y1;
-      var job_y2=this.jobs[i].y2;
-
-
       this.ctx.beginPath();
+      this.ctx.textBaseline="middle";
       this.ctx.strokeStyle=this.jobs[i].color;
+      this.ctx.translate(0,job.getLayer());
 
-      this.ctx.moveTo(this.getPos(this.jobs[i].y1,y2,y3),this.height/2+40-10);
-      this.ctx.quadraticCurveTo(this.getPos(this.jobs[i].y1,y2,y3),this.height/2+40,this.getPos(this.jobs[i].y1,y2,y3)+10,this.height/2+40);
-      if(job_y2<0){
-        job_y2 = this.date.getFullYear()+(this.date.getMonth()/11);
-        this.ctx.lineTo(this.getPos(job_y2,y2,y3),this.height/2+40);
+      this.ctx.moveTo(this.getPos(job.y1,y2,y3),this.height/2-(10*job.getLayerSign()));
+      this.ctx.quadraticCurveTo(this.getPos(job.y1,y2,y3),this.height/2,this.getPos(this.jobs[i].y1,y2,y3)+10,this.height/2);
+      if(job.y2<0){
+        this.ctx.lineTo(this.getPos(this.date.getFullYear()+(this.date.getMonth()/11),y2,y3),this.height/2);
       } else {
-        this.ctx.lineTo(this.getPos(job_y2,y2,y3)-10,this.height/2+40);
-        this.ctx.quadraticCurveTo(this.getPos(job_y2,y2,y3),this.height/2+40,this.getPos(job_y2,y2,y3),this.height/2+40-10);
+        this.ctx.lineTo(this.getPos(job.y2,y2,y3)-10,this.height/2);
+        this.ctx.quadraticCurveTo(this.getPos(job.y2,y2,y3),this.height/2,this.getPos(job.y2,y2,y3),this.height/2-(10*job.getLayerSign()));
       }
 
       this.ctx.stroke();
 
+      this.ctx.translate(job.textPosition,0);
       //title
       this.ctx.font="18px Georgia";
       this.ctx.textAlign ="left";
-      this.ctx.fillText(this.jobs[i].title,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+75);
+      this.ctx.fillText(this.jobs[i].title,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+25+(85*job.isLayerOver()));
       //years
-      this.ctx.font="11px Georgia";
-      var str1 = this.jobs[i].y1+"";
-      var str2 = this.jobs[i].y2+"";
-      if(str2==-1) str2="";
-      this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(this.jobs[i].y1,y2,y3),this.height/2+90);
+      if(job.showYears){
+        this.ctx.font="11px Georgia";
+        var str1 = this.jobs[i].y1+"";
+        var str2 = this.jobs[i].y2+"";
+        if(str2==-1) str2="";
+        this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(this.jobs[i].y1,y2,y3),this.height/2+40+(85*job.isLayerOver()));
+      }
       //text
       this.ctx.font="12px Georgia";
-      this.ctx.fillText(this.jobs[i].text,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+110);
+      this.ctx.fillText(this.jobs[i].text,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+60+(85*job.isLayerOver()));
+
+
+      this.ctx.translate(-1*job.textPosition,-job.getLayer());
     }
 
   }
+}
+
+function LightJob(Job){
+  this.y1 = Job.y1;
+  this.y2 = Job.y2;
+  this.title = Job.title;
+  this.text = Job.text;
+  this.color = Job.color;
+  this.layer = Job.layer;
+  this.textPosition = Job.textPosition;
+  this.showYears = Job.showYears;
 }
 
 function Job(id,input){
@@ -234,18 +271,57 @@ function Job(id,input){
   this.title = input.title;
   this.text = input.text;
   this.color = input.color;
+  this.layer = input.layer;
+  this.layers = [-50,-45,-40,40,45,50];
+  this.textPosition = input.textPosition;
+  this.showYears = input.showYears;
 }
 
+Job.prototype = {
+  getLayer: function(){
+    return this.layers[Math.max(0,this.layer)];
+  },
+  getLayerSign: function(){
+    return Math.max(Math.min(1,this.getLayer()),-1);
+  },
+  isLayerOver: function(){
+    return Math.min(this.getLayerSign(),0);
+  }
+}
 
 
   var canvas = document.getElementById("canvas");
 
   var timeline = new Timeline(canvas);
 
+  [{"id":11,"y1":2015.7,"y2":-1,"title":"KTH","text":"Civilingenjör Datateknik","color":"#00e","layer":3,"layers":[-50,-45,-40,40,45,50],"textPosition":0,"showYears":true},{"id":12,"y1":2012.7,"y2":2016.5,"title":"Kanel","text":"swag","color":"#0f0","layer":2,"layers":[-50,-45,-40,40,45,50],"textPosition":0,"showYears":true},{"id":13,"y1":2015.7,"y2":2017,"title":"Ostbågar","text":"Jag gillar ostbågar","color":"#aa0","layer":1,"layers":[-50,-45,-40,40,45,50],"textPosition":0,"showYears":true},{"id":14,"y1":2013.2,"y2":2013.7,"title":"Sommarjobb","text":"ok","color":"#f0f","layer":3,"layers":[-50,-45,-40,40,45,50],"textPosition":0,"showYears":true}]
+
+  document.getElementById("copy").addEventListener('click',function(event){
+    var temp = document.createElement("textarea");
+    //console.log(timeline.jobs);
+    temp.value=JSON.stringify(timeline.jobs);
+    document.body.appendChild(temp);
+    temp.select();
+    var success = document.execCommand('copy');
+    document.body.removeChild(temp);
+    var oldmsg = document.getElementById("copy").value;
+    var msg = success ? "Copied!" : "Could not copy..";
+    document.getElementById("copy").value = msg;
+    setTimeout(function(){document.getElementById("copy").value = oldmsg;},500);
+
+  });
+
   setInterval(bitch,1000);
 
   function bitch(){
     timeline.render();
+  }
+  function load(){
+    var input = JSON.parse(document.getElementById("load").value);
+    timeline.jobs=[];
+    for(var i in input){
+      timeline.jobs.push(new Job(timeline.getId(),input[i]));
+    }
   }
 
   function submit(){
