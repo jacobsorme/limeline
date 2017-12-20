@@ -11,26 +11,42 @@
     display: block;
     margin-right: 0px;
   }
+  table, td, th {
+    border: solid 1px #000;
+    vertical-align: top;
+  }
+  #ass:hover {
+      background-color:#f0f;
+  }
 
 </style>
 </head>
 <body>
 <meta charset="utf-8">
+<div id="explanation" style="position:absolute;right:150px;top:50px; width:500px">
+Write info about a job/occupation in the area called "text area". Below you can fix colors, submit to timeline or clear the text area. You can also copy the whole project to clipboard, for saving on your computer. Later you can paste the whole thing, and load it.
+<p>The occupation in the text area need to be written in Javascript Object Notation. Everything should be inside a pair of brackets. An attribute is written like this: "attribute":value. Each attribute and its value should be separated by a comma.<p>
+The value could be a color, a number, true, false or a piece of text (which should be inside a pair ot quotes: "text"). Neither of true or false should be inside quotes.
+<br> A color can be written in text, like "turquoise". It can also be written as a blend of red, green and blue. This blend could be chosen via the colored bar under the text. Press apply color. If you use this approach the blend will be written as a "#" followed by hexadecial numbers. If you want you can write the color like this on your own, without the color picker.<p>
+</div>
 <img src="logo1.png" height="50px">
 <br>
 LimeLine - A timeline for limelight<br>
+This is a tool for making a timeline showing your career - for you CV!<br>
+It is important to show people all the good stuff you have done.<br>If you keep it in text it might not be seen, or seen but blurred out by other text.<p>
+
 
 <table>
   <th>Text area</th>
   <th>Occupations</th>
   <tr>
     <td>
-      <textarea id="textarea" rows="9" cols="60" spellcheck="false" style="background:#eee"></textarea><br>
-      <input type="color" value="#ff00ff">
-      <input type="button" onclick="submit()" value="Submit">
-      <input type="button" onclick="clearTextarea()" value="Clear"><br>
-      <input type="button" id="copy" value="Save project to clipboard"><br>
-      <input type="button" onclick="load()" value="Load"><input id="load" type="text" placeholder="Paste here">
+      <textarea class="interactive" id="textarea" rows="9" cols="60" spellcheck="false" style="background:#eee"></textarea><br>
+      <input class="interactive" type="color" id="color" value="#ff00ff"><input type="button" onclick="color()" value="Apply color"><br>
+      <input class="interactive" type="button" id="submit" onclick="submit()" value="Submit">
+      <input class="interactive" type="button" id="clear" onclick="clearTextarea()" value="Clear"><br>
+      <input class="interactive" type="button" id="copy" value="Save project to clipboard"><br>
+      <input class="interactive" type="button" onclick="load()" id="load_button" value="Load"><input class="interactive" id="load" type="text" placeholder="Paste here">
     </td>
     <td>
       <table id="jobs" style="display:block">
@@ -38,9 +54,9 @@ LimeLine - A timeline for limelight<br>
     </td>
 </table>
 
-Years:<input type="number" autocomplete="false" value="1986" id="y1" style="width:50px">
-<input type="number" autocomplete="false" value="2000" id="y2" style="width:50px">
-<input type="number" autocomplete="false" value="-1" id="y3" style="width:50px"><br>
+<text id="">Year 1: </text><input type="number" autocomplete="false" value="1986" min="1900" id="y1" style="width:50px">
+<br>Year 2: <input type="number" autocomplete="false" value="2000" min="1900" id="y2" style="width:50px">
+<br>Year 3: <input type="number" autocomplete="false" value="-1" max="2050" id="y3" style="width:50px"><br>
 Write out all years: <input type="checkbox" autocomplete="false" value="Write all years" id="allyears">
 Make a jump through years: <input type="checkbox" checked autocomplete="false" value="Write all years" id="dotdotdot">
 <br>
@@ -60,6 +76,49 @@ Your browser does not support the HTML5 canvas tag.
 
 <script src="class.js"></script>
 <script>
+  for(var i of document.getElementsByClassName("interactive")){
+    i.addEventListener("mouseover",interactive.bind(null,i));
+    i.addEventListener("mouseout",function(){
+      document.getElementById("explanation").innerHTML ="";
+    });
+  }
+
+  function interactive(elem){
+    switch(elem.id){
+      case("color"):
+        document.getElementById("explanation").innerHTML =  "Press here to choose a color."+
+                                                            " Use button next to me after choosing, and the color will appear in above!";
+        break;
+      case("textarea"):
+        document.getElementById("explanation").innerHTML =  "Edit occupation here. This thing has some attributes. Every attribute has a value."+
+                                                            "The format is this: \"attribute\":value.<p>"+
+                                                            "\"y1\": this it the year the occupation started, year 1";
+        break;
+      case("copy"):
+        document.getElementById("explanation").innerHTML =  "Use this to copy whole project to clipboard."+
+                                                            " You can paste into a document on your computer."+
+                                                            "This is for saving the project, not the actual picture."+
+                                                            "This way you can close this page and keep editing tomorrow.";
+        break;
+      case("load"):
+        document.getElementById("explanation").innerHTML ="Paste a project here";
+        break;
+      case("load_button"):
+        document.getElementById("explanation").innerHTML ="Press here to load a project that you pasted";
+        break;
+      case("submit"):
+        document.getElementById("explanation").innerHTML ="Add the occupation specified in text area above to the timeline";
+        break;
+      case("clear"):
+        document.getElementById("explanation").innerHTML ="Clear the text area from things you added.";
+      default:
+        break;
+    }
+  }
+
+
+
+
   var canvas = document.getElementById("canvas");
 
   var timeline = new Timeline(canvas);
@@ -107,18 +166,24 @@ Your browser does not support the HTML5 canvas tag.
   }
 
   function submit(){
-    console.log("bitsh");
     try {
       var job = new Job(timeline.getId(),JSON.parse(document.getElementById("textarea").value));
       timeline.jobs.push(job);
     } catch(err) {
       console.log(err.message);
     }
+    clearTextarea();
   }
 
   function clearTextarea(){
     console.log("bitsh");
     document.getElementById("textarea").value = "{\n  \"y1\": "+timeline.getY2()+",\n  \"y2\": "+timeline.getY3()+",\n  \"title\": \"\",\n  \"text\": \"\",\n  \"color\": \"\",\n  \"layer\": 3,\n  \"textPosition\": 0,\n  \"showYears\": true\n}";
+  }
+
+  function color(){
+    var job = JSON.parse(document.getElementById("textarea").value);
+    job.color = document.getElementById("color").value;
+    document.getElementById("textarea").value = JSON.stringify(job,null,2);
   }
 
 </script>

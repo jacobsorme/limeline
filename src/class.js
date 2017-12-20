@@ -62,12 +62,8 @@ Timeline.prototype = {
     var y3 = this.getY3();
     this.ctx.lineCap="round";
     this.ctx.textBaseline="middle";
-    if(y3<0) y3 = this.date.getFullYear()+1;
-    this.positions.length = 5;
-    for(var i in this.positions){
-      this.positions[i].length = Math.max(y3-y2,0);
-      this.positions[i].fill(false);
-    }
+    if(y3<0) y3 = this.date.getFullYear()+((this.date.getMonth()+1)/13);
+
 
     if(document.getElementById("dotdotdot").checked){
       this.lmargin = 70;
@@ -83,7 +79,7 @@ Timeline.prototype = {
     this.ctx.strokeStyle ="#000000";
     this.ctx.beginPath();
     this.ctx.moveTo(this.lmargin,this.height/2);
-    this.ctx.lineTo(this.width-this.margin,this.height/2);
+    this.ctx.lineTo(this.width-this.rmargin,this.height/2);
     this.ctx.stroke();
     //this.ctx.clearPath();
 
@@ -118,10 +114,15 @@ Timeline.prototype = {
     this.ctx.font="12px Georgia";
     this.ctx.textAlign ="center";
     this.ctx.fillText(y2,this.lmargin,this.height/2+25);
-    this.ctx.fillText(y3,this.width-this.rmargin,this.height/2+25);
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.getPos(Math.floor(y3),y2,y3),this.height/2-length);
+    this.ctx.lineTo(this.getPos(Math.floor(y3),y2,y3),this.height/2+length);
+    this.ctx.stroke();
+    //this.ctx.fillText(Math.floor(y3),this.getPos(Math.floor(y3),y2,y3),this.height/2+25);
 
     var x;
-    for(var i = y2;i <=y3;i++){
+    for(var i = y2;i <y3;i++){
       x = this.getPos(i,y2,y3);
       length = 5;
       if(i%5==0) {
@@ -176,7 +177,7 @@ Timeline.prototype = {
       this.ctx.moveTo(this.getPos(job.y1,y2,y3),this.height/2-(10*job.getLayerSign()));
       this.ctx.quadraticCurveTo(this.getPos(job.y1,y2,y3),this.height/2,this.getPos(job.y1,y2,y3)+10,this.height/2);
       if(job.y2<0){
-        this.ctx.lineTo(this.getPos(this.date.getFullYear()+(this.date.getMonth()/11),y2,y3),this.height/2);
+        this.ctx.lineTo(this.getPos(this.date.getFullYear()+((this.date.getMonth()+1)/13),y2,y3),this.height/2);
       } else {
         this.ctx.lineTo(this.getPos(job.y2,y2,y3)-10,this.height/2);
         this.ctx.quadraticCurveTo(this.getPos(job.y2,y2,y3),this.height/2,this.getPos(job.y2,y2,y3),this.height/2-(10*job.getLayerSign()));
@@ -184,8 +185,8 @@ Timeline.prototype = {
       // If this thingy is of type seasonal - dont draw the pin!
       if(job.text!=""){
         // The pin should be positioned between start of activity and end of activity.
-        this.ctx.moveTo(this.getPos(job.y1,y2,y3)+this.between(job.textPosition,15,this.getPos(job.y2,y2,y3)-this.getPos(job.y1,y2,y3)-15),this.height/2);
-        this.ctx.lineTo(this.getPos(job.y1,y2,y3)+this.between(job.textPosition,15,this.getPos(job.y2,y2,y3)-this.getPos(job.y1,y2,y3)-15),(10*job.getLayerSign())+this.height/2);
+        this.ctx.moveTo(this.getPos(job.y1,y2,y3)+this.between(job.textPosition+15,15,this.getPos(job.y2,y2,y3)-this.getPos(job.y1,y2,y3)-15),this.height/2);
+        this.ctx.lineTo(this.getPos(job.y1,y2,y3)+this.between(job.textPosition+15,15,this.getPos(job.y2,y2,y3)-this.getPos(job.y1,y2,y3)-15),(10*job.getLayerSign())+this.height/2);
       }
 
 
@@ -195,8 +196,9 @@ Timeline.prototype = {
       this.ctx.translate(job.textPosition,0);
       //title
       if(job.text!=""){
-        this.ctx.font="18px Georgia";
         this.ctx.textAlign ="left";
+        this.ctx.fillStyle="#000";
+        this.ctx.font="18px Georgia";
         this.ctx.fillText(this.jobs[i].title,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+25+(85*job.isLayerOver()));
       }
 
@@ -206,9 +208,9 @@ Timeline.prototype = {
         var str1 = this.jobs[i].y1+"";
         var str2 = this.jobs[i].y2+"";
         if(str2==-1) str2="";
-        this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(this.jobs[i].y1,y2,y3),this.height/2+40+(85*job.isLayerOver()));
+        this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(this.jobs[i].y1,y2,y3),this.height/2+42+(85*job.isLayerOver()));
       } else if(typeof job.showYears === "string"){
-        this.ctx.fillText(job.showYears,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+40+(85*job.isLayerOver()));
+        this.ctx.fillText(job.showYears,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+42+(85*job.isLayerOver()));
       }
       //text
       this.ctx.font="12px Georgia";
