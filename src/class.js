@@ -64,7 +64,6 @@ Timeline.prototype = {
     this.ctx.textBaseline="middle";
     if(y3<0) y3 = this.date.getFullYear()+((this.date.getMonth()+1)/13);
 
-
     if(document.getElementById("dotdotdot").checked){
       this.lmargin = 70;
     } else { this.lmargin = this.margin; }
@@ -138,11 +137,7 @@ Timeline.prototype = {
     // render occupations & Interface
     this.ctx.lineWidth=2;
     document.getElementById("jobs").innerHTML ="";
-    for(var i in this.jobs){
-      var job = this.jobs[i];
-      //init
-
-
+    for(var job of this.jobs){
 
       //Interface
       var row = document.createElement("tr");
@@ -155,10 +150,10 @@ Timeline.prototype = {
       remove.value = "Remove";
       edit.value = "Edit";
 
-      remove.onclick=this.removeJob.bind(this,this.jobs[i].id);
-      edit.onclick=this.editJob.bind(this,this.jobs[i].id);
+      remove.onclick=this.removeJob.bind(this,job.id);
+      edit.onclick=this.editJob.bind(this,job.id);
 
-      div.innerHTML+= (this.jobs[i].title.length==0 ? " - " : this.jobs[i].title);
+      div.innerHTML+= (job.title.length==0 ? " - " : job.title);
       div.appendChild(edit);
       div.appendChild(remove);
       data.appendChild(div);
@@ -171,22 +166,24 @@ Timeline.prototype = {
       // occupations
       this.ctx.beginPath();
       this.ctx.textBaseline="middle";
-      this.ctx.strokeStyle=this.jobs[i].color;
+      this.ctx.strokeStyle=job.color;
       this.ctx.translate(0,job.getLayer());
 
-      this.ctx.moveTo(this.getPos(job.y1,y2,y3),this.height/2-(10*job.getLayerSign()));
-      this.ctx.quadraticCurveTo(this.getPos(job.y1,y2,y3),this.height/2,this.getPos(job.y1,y2,y3)+10,this.height/2);
-      if(job.y2<0){
+      this.ctx.moveTo(this.getPos(job.start,y2,y3),this.height/2-(10*job.getLayerSign()));
+      this.ctx.quadraticCurveTo(this.getPos(job.start,y2,y3),this.height/2,this.getPos(job.start,y2,y3)+10,this.height/2);
+      if(job.end<0){
         this.ctx.lineTo(this.getPos(this.date.getFullYear()+((this.date.getMonth()+1)/13),y2,y3),this.height/2);
       } else {
-        this.ctx.lineTo(this.getPos(job.y2,y2,y3)-10,this.height/2);
-        this.ctx.quadraticCurveTo(this.getPos(job.y2,y2,y3),this.height/2,this.getPos(job.y2,y2,y3),this.height/2-(10*job.getLayerSign()));
+        this.ctx.lineTo(this.getPos(job.end,y2,y3)-10,this.height/2);
+        this.ctx.quadraticCurveTo(this.getPos(job.end,y2,y3),this.height/2,this.getPos(job.end,y2,y3),this.height/2-(10*job.getLayerSign()));
       }
       // If this thingy is of type seasonal - dont draw the pin!
       if(job.text!=""){
         // The pin should be positioned between start of activity and end of activity.
-        this.ctx.moveTo(this.getPos(job.y1,y2,y3)+this.between(job.textPosition+15,15,this.getPos(job.y2,y2,y3)-this.getPos(job.y1,y2,y3)-15),this.height/2);
-        this.ctx.lineTo(this.getPos(job.y1,y2,y3)+this.between(job.textPosition+15,15,this.getPos(job.y2,y2,y3)-this.getPos(job.y1,y2,y3)-15),(10*job.getLayerSign())+this.height/2);
+        var end = job.end;
+        if(end==-1)end = this.date.getFullYear()+((this.date.getMonth()+1)/13);
+        this.ctx.moveTo(this.getPos(job.start,y2,y3)+this.between(job.textPosition+15,15,this.getPos(end,y2,y3)-this.getPos(job.start,y2,y3)-15),this.height/2);
+        this.ctx.lineTo(this.getPos(job.start,y2,y3)+this.between(job.textPosition+15,15,this.getPos(end,y2,y3)-this.getPos(job.start,y2,y3)-15),(10*job.getLayerSign())+this.height/2);
       }
 
 
@@ -199,22 +196,22 @@ Timeline.prototype = {
         this.ctx.textAlign ="left";
         this.ctx.fillStyle="#000";
         this.ctx.font="18px Georgia";
-        this.ctx.fillText(this.jobs[i].title,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+25+(85*job.isLayerOver()));
+        this.ctx.fillText(job.title,this.getPos(job.start,y2,y3),this.height/2+25+(85*job.isLayerOver()));
       }
 
       //years
       this.ctx.font="11px Georgia";
       if(typeof job.showYears === "boolean" && job.showYears){
-        var str1 = this.jobs[i].y1+"";
-        var str2 = this.jobs[i].y2+"";
+        var str1 = job.start+"";
+        var str2 = job.end+"";
         if(str2==-1) str2="";
-        this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(this.jobs[i].y1,y2,y3),this.height/2+42+(85*job.isLayerOver()));
+        this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(job.start,y2,y3),this.height/2+42+(85*job.isLayerOver()));
       } else if(typeof job.showYears === "string"){
-        this.ctx.fillText(job.showYears,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+42+(85*job.isLayerOver()));
+        this.ctx.fillText(job.showYears,this.getPos(job.start,y2,y3),this.height/2+42+(85*job.isLayerOver()));
       }
       //text
       this.ctx.font="12px Georgia";
-      this.ctx.fillText(this.jobs[i].text,this.getPos(this.jobs[i].y1,y2,y3),this.height/2+60+(85*job.isLayerOver()));
+      this.ctx.fillText(job.text,this.getPos(job.start,y2,y3),this.height/2+60+(85*job.isLayerOver()));
 
 
       this.ctx.translate(-1*job.textPosition,-job.getLayer());
@@ -223,8 +220,8 @@ Timeline.prototype = {
 }
 
 function LightJob(Job){
-  this.y1 = Job.y1;
-  this.y2 = Job.y2;
+  this.start = Job.start;
+  this.end = Job.end;
   this.title = Job.title;
   this.text = Job.text;
   this.color = Job.color;
@@ -235,8 +232,8 @@ function LightJob(Job){
 
 function Job(id,input){
   this.id = id;
-  this.y1 = input.y1;
-  this.y2 = input.y2;
+  this.start = input.start;
+  this.end = input.end;
   this.title = input.title;
   this.text = input.text;
   this.color = input.color;

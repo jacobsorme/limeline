@@ -23,12 +23,7 @@
 </head>
 <body>
 <meta charset="utf-8">
-<div id="explanation" style="position:absolute;right:150px;top:50px; width:500px">
-Write info about a job/occupation in the area called "text area". Below you can fix colors, submit to timeline or clear the text area. You can also copy the whole project to clipboard, for saving on your computer. Later you can paste the whole thing, and load it.
-<p>The occupation in the text area need to be written in Javascript Object Notation. Everything should be inside a pair of brackets. An attribute is written like this: "attribute":value. Each attribute and its value should be separated by a comma.<p>
-The value could be a color, a number, true, false or a piece of text (which should be inside a pair ot quotes: "text"). Neither of true or false should be inside quotes.
-<br> A color can be written in text, like "turquoise". It can also be written as a blend of red, green and blue. This blend could be chosen via the colored bar under the text. Press apply color. If you use this approach the blend will be written as a "#" followed by hexadecial numbers. If you want you can write the color like this on your own, without the color picker.<p>
-</div>
+
 <img src="logo1.png" height="50px">
 <br>
 LimeLine - A timeline for limelight<br>
@@ -41,7 +36,7 @@ It is important to show people all the good stuff you have done.<br>If you keep 
   <th>Occupations</th>
   <tr>
     <td>
-      <textarea class="interactive" id="textarea" rows="9" cols="60" spellcheck="false" style="background:#eee"></textarea><br>
+      <textarea class="interactive" id="textarea" rows="9" cols="50" spellcheck="false" style="background:#eee"></textarea><br>
       <input class="interactive" type="color" id="color" value="#ff00ff"><input type="button" onclick="color()" value="Apply color"><br>
       <input class="interactive" type="button" id="submit" onclick="submit()" value="Submit">
       <input class="interactive" type="button" id="clear" onclick="clearTextarea()" value="Clear"><br>
@@ -51,6 +46,10 @@ It is important to show people all the good stuff you have done.<br>If you keep 
     <td>
       <table id="jobs" style="display:block">
       </table>
+    </td>
+    <td>
+      <div id="explanation" style="max-width:500px">
+      </div>
     </td>
 </table>
 
@@ -116,17 +115,14 @@ Your browser does not support the HTML5 canvas tag.
     }
   }
 
-
-
-
   var canvas = document.getElementById("canvas");
 
   var timeline = new Timeline(canvas);
 
-  var test1 = {y1:2003,y2:-1,title:"School1",text:"This occupation is active today, \"y2\" is -1",color:"#0f0",layer:3,textPosition:0,showYears:true};
-  var test2 = {y1:2009,y2:2012,title:"Job1",text:"Started at 2009.5, middle of 2009. Layer 2",color:"#0ff",layer:2,textPosition:10,showYears:"This could be text"};
-  var test3 = {y1:2008,y2:2015,title:"Job2",text:"This occupation has \"showYears\" as false",color:"#f0f",layer:4,textPosition:0,showYears:false};
-  var test4 = {y1:2011,y2:2017.5,title:"Activity1",text:"All this text is moved, via \"textPosition\"",color:"#aa0",layer:5,textPosition:150,showYears:true};
+  var test1 = {start:2003,end:-1,title:"School1",text:"This occupation is active today, \"y2\" is -1",color:"#0f0",layer:3,textPosition:0,showYears:true};
+  var test2 = {start:2009,end:2012,title:"Job1",text:"Started at 2009.5, middle of 2009. Layer 2",color:"#0ff",layer:2,textPosition:10,showYears:"This could be text"};
+  var test3 = {start:2008,end:2015,title:"Job2",text:"This occupation has \"showYears\" as false",color:"#f0f",layer:4,textPosition:0,showYears:false};
+  var test4 = {start:2011,end:2017.5,title:"Activity1",text:"All this text is moved, via \"textPosition\"",color:"#aa0",layer:5,textPosition:150,showYears:true};
 
 
   timeline.jobs.push(new Job(timeline.getId(),test1));
@@ -177,7 +173,7 @@ Your browser does not support the HTML5 canvas tag.
 
   function clearTextarea(){
     console.log("bitsh");
-    document.getElementById("textarea").value = "{\n  \"y1\": "+timeline.getY2()+",\n  \"y2\": "+timeline.getY3()+",\n  \"title\": \"\",\n  \"text\": \"\",\n  \"color\": \"\",\n  \"layer\": 3,\n  \"textPosition\": 0,\n  \"showYears\": true\n}";
+    document.getElementById("textarea").value = "{\n  \"start\": "+timeline.getY2()+",\n  \"end\": "+timeline.getY3()+",\n  \"title\": \"\",\n  \"text\": \"\",\n  \"color\": \"\",\n  \"layer\": 3,\n  \"textPosition\": 0,\n  \"showYears\": true\n}";
   }
 
   function color(){
