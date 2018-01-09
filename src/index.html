@@ -28,18 +28,19 @@
 <br>
 LimeLine - A timeline for limelight<br>
 This is a tool for making a timeline showing your career - for you CV!<br>
-It is important to show people all the good stuff you have done.<br>If you keep it in text it might not be seen, or seen but blurred out by other text.<p>
-
+It is important to show people all the good stuff you have done - in a way they can't miss it.<!--<br>If you keep it in text it might not be seen, or seen but blurred out by other text.<p>-->
+<p>
 
 <table>
   <th>Text area</th>
   <th>Occupations</th>
+  <th>Info</th>
   <tr>
     <td>
-      <textarea class="interactive" id="textarea" rows="9" cols="50" spellcheck="false" style="background:#eee"></textarea><br>
+      <textarea class="interactive" id="textarea" rows="9" cols="60" spellcheck="false" style="background:#eee"></textarea><br>
       <input class="interactive" type="color" id="color" value="#ff00ff"><input type="button" onclick="color()" value="Apply color"><br>
       <input class="interactive" type="button" id="submit" onclick="submit()" value="Submit">
-      <input class="interactive" type="button" id="clear" onclick="clearTextarea()" value="Clear"><br>
+      <input class="interactive" type="button" id="clear" onclick="clearTextarea()" value="Clear"><p>
       <input class="interactive" type="button" id="copy" value="Save project to clipboard"><br>
       <input class="interactive" type="button" onclick="load()" id="load_button" value="Load"><input class="interactive" id="load" type="text" placeholder="Paste here">
     </td>
@@ -48,29 +49,42 @@ It is important to show people all the good stuff you have done.<br>If you keep 
       </table>
     </td>
     <td>
-      <div id="explanation" style="max-width:500px">
+      <div id="explanation" style="max-width:700px">
       </div>
     </td>
 </table>
 
-<text id="">Year 1: </text><input type="number" autocomplete="false" value="1986" min="1900" id="y1" style="width:50px">
-<br>Year 2: <input type="number" autocomplete="false" value="2000" min="1900" id="y2" style="width:50px">
-<br>Year 3: <input type="number" autocomplete="false" value="-1" max="2050" id="y3" style="width:50px"><br>
-Write out all years: <input type="checkbox" autocomplete="false" value="Write all years" id="allyears">
-Make a jump through years: <input type="checkbox" checked autocomplete="false" value="Write all years" id="dotdotdot">
-<br>
-
-
-
+<table>
+  <tr>
+    <td>
+      <text class="interactive" id="year1">(Optional special start year):</text>
+    </td>
+    <td>
+      <input type="number" autocomplete="false" value="1986" min="1900" id="y1" style="width:50px"> Show:<input autocomplete="false" type="checkbox" checked autocomplete="false" value="Write all years" id="dotdotdot">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <text class="interactive" id="year2">Timeline start year:</text>
+    </td>
+    <td>
+      <input type="number" autocomplete="false" value="2000" min="1900" max="2999" id="y2" style="width:50px">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <text class="interactive" id="year3">Timeline end year:</text>
+    </td>
+    <td>
+      <input type="number" autocomplete="false"  disabled="true" min ="1900" value="2017" max="2999" id="y3" style="width:50px">Todays date as end: <input autocomplete="false" type="checkbox" id="today" checked="true" onclick="today(this)">
+    </td>
+  </tr>
+</table>
+Write out all years: <input type="checkbox" autocomplete="false" value="Write all years" checked="true" id="allyears">
+<p><a id="download" href="#" onclick="timeline.downloadImage()" download="limeline.png">Download Image</a><br>
 <canvas id="canvas" width="1000" height="350" style="border:1px solid #000000;">
 Your browser does not support the HTML5 canvas tag.
 </canvas>
-<br><a id="download" href="#" onclick="timeline.downloadImage()" download="limeline.png">Download Image</a>
-
-
-
-
-
 
 
 <script src="class.js"></script>
@@ -89,9 +103,16 @@ Your browser does not support the HTML5 canvas tag.
                                                             " Use button next to me after choosing, and the color will appear in above!";
         break;
       case("textarea"):
-        document.getElementById("explanation").innerHTML =  "Edit occupation here. This thing has some attributes. Every attribute has a value."+
-                                                            "The format is this: \"attribute\":value.<p>"+
-                                                            "\"y1\": this it the year the occupation started, year 1";
+        document.getElementById("explanation").innerHTML =  "Edit occupation here. Give the attributes some values."+
+                                                            "<p><b>\"start\":</b> this is the year the occupation started (can be eg. 2006.5 for middle of 2006)."+
+                                                            "<br><b>\"end\":</b> the year occupation ended. If the occupation is ongoing, set to: false."+
+                                                            "<br><b>\"title\":</b> The title, eg. \"title\": \"NASA\" "+
+                                                            "<br><b>\"text\":</b> Description, like \"Manager\" or if this is a school maybe \"Computer Science\""+
+                                                            "<br><b>\"color\":</b> The color of the line. Could be eg. \"blue\". Can also be in rgb or hex format."+
+                                                            "<br><b>\"layer\":</b> Vertical position of occupation. Layer 0,1,2,3 is above timeline. 4,5,6,7 is under timeline."+
+                                                            "<br><b>\"textPosition\":</b> This move the text from it's line. Good if you have many occupations in same place. Eg. -100 will move text 100px to left."+
+                                                            "<br><b>\"showYears\":</b> The years the occupation spanned will be written out if this is true, not if false. Can be text eg. \"Summer 1969\""+
+                                                            "<p>Note! Text as value to attribute need to be inside quotes. Each attribute name is inside quotes, followed by a colon, followed by value. Separate attributes and their values with comma.";
         break;
       case("copy"):
         document.getElementById("explanation").innerHTML =  "Use this to copy whole project to clipboard."+
@@ -109,7 +130,17 @@ Your browser does not support the HTML5 canvas tag.
         document.getElementById("explanation").innerHTML ="Add the occupation specified in text area above to the timeline";
         break;
       case("clear"):
-        document.getElementById("explanation").innerHTML ="Clear the text area from things you added.";
+        document.getElementById("explanation").innerHTML ="Clear the text area to a template";
+        break;
+      case("year1"):
+        document.getElementById("explanation").innerHTML ="The first year. Used to mark eg. your birth year. Not used unless box is checked.";
+        break;
+      case("year2"):
+        document.getElementById("explanation").innerHTML ="Start year - this is when timeline begins!";
+        break;
+      case("year3"):
+        document.getElementById("explanation").innerHTML ="This is when timeline ends. Uncheck button to not use this and use todays date instead!";
+        break;
       default:
         break;
     }
@@ -119,16 +150,18 @@ Your browser does not support the HTML5 canvas tag.
 
   var timeline = new Timeline(canvas);
 
-  var test1 = {start:2003,end:-1,title:"School1",text:"This occupation is active today, \"y2\" is -1",color:"#0f0",layer:3,textPosition:0,showYears:true};
-  var test2 = {start:2009,end:2012,title:"Job1",text:"Started at 2009.5, middle of 2009. Layer 2",color:"#0ff",layer:2,textPosition:10,showYears:"This could be text"};
-  var test3 = {start:2008,end:2015,title:"Job2",text:"This occupation has \"showYears\" as false",color:"#f0f",layer:4,textPosition:0,showYears:false};
-  var test4 = {start:2011,end:2017.5,title:"Activity1",text:"All this text is moved, via \"textPosition\"",color:"#aa0",layer:5,textPosition:150,showYears:true};
+  var test1 = {start:2003,end:false,title:"School1",text:"This occupation is active today, attribute \"end\" is false",color:"#0f0",layer:3,textPosition:0,showYears:true};
+  var test2 = {start:2010.3,end:2010.7,title:"Job2",text:"Summer work",color:"#0ff",layer:2,textPosition:0,showYears:"Summers of 2010 & 2011 (This part can be text!)"};
+  var test3 = {start:2011.3,end:2011.7,title:"",text:"",color:"#0ff",layer:2,textPosition:10,showYears:false};
+  var test4 = {start:2008,end:2015,title:"Job1",text:"This occupation has \"showYears\" as false",color:"#f0f",layer:4,textPosition:0,showYears:false};
+  var test5 = {start:2011,end:2017.5,title:"Activity1",text:"All this text is moved, with \"textPosition\"",color:"#aa0",layer:5,textPosition:125,showYears:true};
 
 
   timeline.jobs.push(new Job(timeline.getId(),test1));
   timeline.jobs.push(new Job(timeline.getId(),test2));
   timeline.jobs.push(new Job(timeline.getId(),test3));
   timeline.jobs.push(new Job(timeline.getId(),test4));
+  timeline.jobs.push(new Job(timeline.getId(),test5));
 
 
   clearTextarea();
@@ -139,12 +172,11 @@ Your browser does not support the HTML5 canvas tag.
     document.body.appendChild(temp);
     temp.select();
     var success = document.execCommand('copy');
-    document.body.removeChild(temp);
     var oldmsg = document.getElementById("copy").value;
     var msg = success ? "Copied!" : "Could not copy..";
     document.getElementById("copy").value = msg;
     setTimeout(function(){document.getElementById("copy").value = oldmsg;},500);
-
+    document.body.removeChild(temp);
   });
 
   setInterval(bitch,1000);
@@ -180,6 +212,12 @@ Your browser does not support the HTML5 canvas tag.
     var job = JSON.parse(document.getElementById("textarea").value);
     job.color = document.getElementById("color").value;
     document.getElementById("textarea").value = JSON.stringify(job,null,2);
+  }
+
+  function today(elem){
+    console.log(document.getElementById("y3").disabled + "   "+ elem.checked);
+    if(elem.checked) document.getElementById("y3").disabled = true;
+    else document.getElementById("y3").disabled = false;
   }
 
 </script>

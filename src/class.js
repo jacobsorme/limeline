@@ -62,20 +62,29 @@ Timeline.prototype = {
     var y3 = this.getY3();
     this.ctx.lineCap="round";
     this.ctx.textBaseline="middle";
-    if(y3<0) y3 = this.date.getFullYear()+((this.date.getMonth()+1)/13);
+
+    // corrections
+    if(y3!=-1&&y3<y2)return;
+    if(y3>2999) return;
+    if(y2<1900) return;
+    if(y2>2999) return;
+    if(document.getElementById("today").checked) y3 = this.date.getFullYear()+((this.date.getMonth()+1)/13);
+
+
 
     if(document.getElementById("dotdotdot").checked){
       this.lmargin = 70;
     } else { this.lmargin = this.margin; }
 
 
+    // White background
     this.ctx.fillStyle="#fff";
     this.ctx.fillRect(0,0,this.width,this.height);
-    this.ctx.fillStyle="#000";
-    this.ctx.lineWidth =2;
+
 
     // render timeline
     this.ctx.strokeStyle ="#000000";
+    this.ctx.lineWidth =2;
     this.ctx.beginPath();
     this.ctx.moveTo(this.lmargin,this.height/2);
     this.ctx.lineTo(this.width-this.rmargin,this.height/2);
@@ -85,7 +94,7 @@ Timeline.prototype = {
     //render years and marks
     this.ctx.textBaseline="alphabetic";
     var length = 5;
-
+    this.ctx.fillStyle="#000";
     //beginning, y1
     if(document.getElementById("dotdotdot").checked) {
       this.ctx.beginPath();
@@ -141,8 +150,8 @@ Timeline.prototype = {
 
       //Interface
       var row = document.createElement("tr");
-      var data = document.createElement("td");
-      var div = document.createElement("div");
+      var text = document.createElement("td");
+      var buttons = document.createElement("td");
       var remove = document.createElement("input");
       var edit = document.createElement("input");
       remove.type = "button";
@@ -153,11 +162,12 @@ Timeline.prototype = {
       remove.onclick=this.removeJob.bind(this,job.id);
       edit.onclick=this.editJob.bind(this,job.id);
 
-      div.innerHTML+= (job.title.length==0 ? " - " : job.title);
-      div.appendChild(edit);
-      div.appendChild(remove);
-      data.appendChild(div);
-      row.appendChild(data);
+      text.innerHTML+= "<text style=\"color:"+job.color+"\">&ensp; o&ensp; </text>"+(job.title.length==0 ? " - " : job.title);
+
+      buttons.appendChild(remove);
+      buttons.appendChild(edit);
+      row.appendChild(text);
+      row.appendChild(buttons);
 
       document.getElementById("jobs").appendChild(row);
 
@@ -171,8 +181,8 @@ Timeline.prototype = {
 
       this.ctx.moveTo(this.getPos(job.start,y2,y3),this.height/2-(10*job.getLayerSign()));
       this.ctx.quadraticCurveTo(this.getPos(job.start,y2,y3),this.height/2,this.getPos(job.start,y2,y3)+10,this.height/2);
-      if(job.end<0){
-        this.ctx.lineTo(this.getPos(this.date.getFullYear()+((this.date.getMonth()+1)/13),y2,y3),this.height/2);
+      if(!job.end){
+        this.ctx.lineTo(this.getPos(y3,y2,y3),this.height/2);
       } else {
         this.ctx.lineTo(this.getPos(job.end,y2,y3)-10,this.height/2);
         this.ctx.quadraticCurveTo(this.getPos(job.end,y2,y3),this.height/2,this.getPos(job.end,y2,y3),this.height/2-(10*job.getLayerSign()));
@@ -181,9 +191,9 @@ Timeline.prototype = {
       if(job.text!=""){
         // The pin should be positioned between start of activity and end of activity.
         var end = job.end;
-        if(end==-1)end = this.date.getFullYear()+((this.date.getMonth()+1)/13);
-        this.ctx.moveTo(this.getPos(job.start,y2,y3)+this.between(job.textPosition+15,15,this.getPos(end,y2,y3)-this.getPos(job.start,y2,y3)-15),this.height/2);
-        this.ctx.lineTo(this.getPos(job.start,y2,y3)+this.between(job.textPosition+15,15,this.getPos(end,y2,y3)-this.getPos(job.start,y2,y3)-15),(10*job.getLayerSign())+this.height/2);
+        if(end==false)end = this.date.getFullYear()+((this.date.getMonth()+1)/13);
+        this.ctx.moveTo(this.getPos(job.start,y2,y3)+this.between(job.textPosition+15,15,this.getPos(end,y2,y3)-this.getPos(job.start,y2,y3)-10),this.height/2);
+        this.ctx.lineTo(this.getPos(job.start,y2,y3)+this.between(job.textPosition+15,15,this.getPos(end,y2,y3)-this.getPos(job.start,y2,y3)-10),(10*job.getLayerSign())+this.height/2);
       }
 
 
@@ -204,7 +214,7 @@ Timeline.prototype = {
       if(typeof job.showYears === "boolean" && job.showYears){
         var str1 = job.start+"";
         var str2 = job.end+"";
-        if(str2==-1) str2="";
+        if(str2=="false") str2="";
         this.ctx.fillText(str1.substring(0,4)+"-"+str2.substring(0,4),this.getPos(job.start,y2,y3),this.height/2+42+(85*job.isLayerOver()));
       } else if(typeof job.showYears === "string"){
         this.ctx.fillText(job.showYears,this.getPos(job.start,y2,y3),this.height/2+42+(85*job.isLayerOver()));
